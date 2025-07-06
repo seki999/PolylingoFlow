@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>项目规划文档</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h2 { color: #2F4F4F; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+        th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        ul { list-style-type: disc; padding-left: 20px; }
+    </style>
+</head>
+<body>
+
+<h2>一、项目目标</h2>
+<p>开发一个基于 Java 的完全开源应用程序，支持如下功能：</p>
+<ul>
+    <li>实时记录高质量语音</li>
+    <li>进行非线性的语音分段和非静音推理</li>
+    <li>通过 WhisperJNI 进行本地化语音转文字</li>
+    <li>将文字进行实时翻译（Google/LibreTranslate）</li>
+    <li>通过 JavaFX UI 展示结果，支持视觉举例、系统打包和多类型文件导出</li>
+</ul>
+
+<h2>二、功能模块分析</h2>
+<table>
+    <tr>
+        <th>模块名</th>
+        <th>功能说明</th>
+    </tr>
+    <tr><td>AudioCapture</td><td>录音模块，通过 javax.sound.sampled/离线 AudioRecord 实现</td></tr>
+    <tr><td>VadProcessor</td><td>非静音分段，基于 WebRTC VAD 或 SileroVAD (JNI)</td></tr>
+    <tr><td>WhisperEngine</td><td>进行流式转写，封装 WhisperJNI/同步实现</td></tr>
+    <tr><td>TranslatorService</td><td>进行翻译调用，支持多类 REST API (Google/Libre)</td></tr>
+    <tr><td>Bridge</td><td>系统状态中心，实现数据分发和 UI 观測者</td></tr>
+    <tr><td>MainUI</td><td>JavaFX UI 系统，含抽格、文本显示、功能按钮</td></tr>
+    <tr><td>TrayController</td><td>系统打包/开始录音/选择文件</td></tr>
+    <tr><td>Exporter</td><td>将结果导出为 txt/srt/vtt/json</td></tr>
+</table>
+
+<h2>三、实现步骤</h2>
+<ul>
+    <li><strong>第一阶段：基础开发</strong>
+        <ul>
+            <li>创建 Maven/或 Gradle JavaFX 项目</li>
+            <li>集成 JavaFX + slf4j + okhttp + whisper-jni</li>
+            <li>搭建最简 UI：一个 TextArea + Start Button</li>
+        </ul>
+    </li>
+    <li><strong>第二阶段：实现录音 + VAD</strong>
+        <ul>
+            <li>通过 TargetDataLine 分段录音 PCM</li>
+            <li>接入 WebRTC VAD JNI，识别静音</li>
+            <li>保存有效音频段到 RingBuffer</li>
+        </ul>
+    </li>
+    <li><strong>第三阶段：语音转文字</strong>
+        <ul>
+            <li>WhisperJNI 加载小型模型，实现 transcribe(byte[])</li>
+            <li>每 2s 分段转写，保持文本永续性</li>
+        </ul>
+    </li>
+    <li><strong>第四阶段：翻译编解</strong>
+        <ul>
+            <li>创建 TranslatorService，支持 Google/LibreTranslate</li>
+            <li>封装 translateAsync(text, callback)</li>
+            <li>输出结果分发给 UI/TextArea</li>
+        </ul>
+    </li>
+    <li><strong>第五阶段：UI 协同 + 状态管理</strong>
+        <ul>
+            <li>Bridge 作为状态管理组件，通知 UI</li>
+            <li>UI 添加文本分类显示格式（原文/转写/翻译）</li>
+            <li>添加打包功能：启动、选文件、导出</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>四、技术选型</h2>
+<table>
+    <tr>
+        <th>技术</th>
+        <th>用途</th>
+        <th>备注</th>
+    </tr>
+    <tr><td>JavaFX</td><td>框架UI界面</td><td>支持 FXML、高级 CSS</td></tr>
+    <tr><td>Whisper-JNI</td><td>本地化 Whisper 转写</td><td>实现性能良好</td></tr>
+    <tr><td>OkHttp + Gson</td><td>网络请求和 JSON 分析</td><td>更換 Retrofit 也可行</td></tr>
+    <tr><td>SLF4J</td><td>日志托管</td><td>同时录入控制台和文件</td></tr>
+    <tr><td>Java SystemTray</td><td>系统打包</td><td>支持打开 UI 或录音</td></tr>
+</table>
+
+</body>
+</html>
